@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickSave - Banking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0A1628, #1A3A8F);
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            width: 400px;
+        }
+
+            .login-card h1 {
+                margin-bottom: 30px;
+                color: #0A1628;
+            }
+
+            .login-card input {
+                width: 100%;
+                padding: 12px;
+                margin: 10px 0;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+            }
+
+            .login-card button {
+                width: 100%;
+                padding: 12px;
+                background: #1A6BFF;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                margin-top: 20px;
+            }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #0A1628;
+            color: white;
+            padding: 30px 20px;
+            position: fixed;
+            height: 100vh;
+        }
+
+            .sidebar h2 {
+                margin-bottom: 30px;
+            }
+
+            .sidebar nav a {
+                display: block;
+                padding: 12px 15px;
+                color: #aaa;
+                text-decoration: none;
+                border-radius: 8px;
+                margin-bottom: 5px;
+                cursor: pointer;
+            }
+
+                .sidebar nav a:hover, .sidebar nav a.active {
+                    background: #1A3A8F;
+                    color: white;
+                }
+
+        .user-info {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 30px;
+        }
+
+        .page {
+            display: none;
+        }
+
+            .page.active {
+                display: block;
+            }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .account-card {
+            background: linear-gradient(135deg, #1A3A8F, #1A6BFF);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+            .account-card .balance {
+                font-size: 28px;
+                font-weight: bold;
+                margin: 10px 0;
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #1A6BFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            button:hover {
+                background: #1560E8;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f5f5f5;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+            .toast.success {
+                background: #2DBD8C;
+            }
+
+            .toast.error {
+                background: #E84B4B;
+            }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <h1>💰 QuickSave</h1>
+            <input type="text" id="username" placeholder="Username" value="testuser">
+            <input type="password" id="password" placeholder="Password" value="test123">
+            <button onclick="login()">Sign In</button>
+        </div>
+    </div>
+
+    <div id="appPage" style="display:none">
+        <div class="app-container">
+            <div class="sidebar">
+                <h2>💰 QuickSave</h2>
+                <nav>
+                    <a onclick="showPage('dashboard')" class="active" id="nav-dashboard">🏠 Dashboard</a>
+                    <a onclick="showPage('transfer')" id="nav-transfer">↗️ Transfer</a>
+                    <a onclick="showPage('withdraw')" id="nav-withdraw">💳 Withdraw</a>
+                    <a onclick="showPage('transactions')" id="nav-transactions">📋 Transactions</a>
+                </nav>
+                <div class="user-info">
+                    <div id="userName">User</div>
+                    <button onclick="logout()" style="margin-top:10px;width:100%;background:#E84B4B">Sign Out</button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div id="dashboardPage" class="page active">
+                    <h2>Dashboard</h2>
+                    <div id="accountsList"></div>
+                </div>
+
+                <div id="transferPage" class="page">
+                    <div class="card">
+                        <h3>New Transfer</h3>
+                        <div class="form-group">
+                            <label>From Account ID</label>
+                            <input type="number" id="fromAccount" placeholder="Enter account ID (e.g., 1)">
+                        </div>
+                        <div class="form-group">
+                            <label>To Account ID</label>
+                            <input type="number" id="toAccount" placeholder="Enter account ID (e.g., 2)">
+                        </div>
+                        <div class="form-group">
+                            <label>Amount ($)</label>
+                            <input type="number" id="amount" step="0.01" placeholder="0.00">
+                        </div>
+                        <button onclick="transfer()">Send Transfer</button>
+                    </div>
+                </div>
+
+                <div id="withdrawPage" class="page">
+                    <div class="card">
+                        <h3>Withdraw Funds</h3>
+                        <div class="form-group">
+                            <label>Account ID</label>
+                            <input type="number" id="withdrawAccount" placeholder="Enter account ID (e.g., 1)">
+                        </div>
+                        <div class="form-group">
+                            <label>Amount ($)</label>
+                            <input type="number" id="withdrawAmount" step="0.01" placeholder="0.00">
+                        </div>
+                        <button onclick="withdraw()">Withdraw</button>
+                    </div>
+                </div>
+
+                <div id="transactionsPage" class="page">
+                    <div class="card">
+                        <h3>Transaction History</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Amount</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionsBody">
+                                    <tr><td colspan="7">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const API = 'http://localhost:8000/api/v1';
+    let token = localStorage.getItem('token');
+    let accounts = [];
+
+    function showToast(msg, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type || 'info'}`;
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function apiGet(path) {
+        // GET requests cannot have body - send token as query parameter
+        const url = `${API}${path}?token=${encodeURIComponent(token)}`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.detail || data.message || 'Request failed');
+        }
+        return data;
+    }
+
+    async function apiPost(path, bodyData) {
+        let requestBody = bodyData || {};
+        if (token && path !== '/login') {
+            requestBody.token = token;
+        }
+        const response = await fetch(API + path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.detail || data.message || 'Request failed');
+        }
+        return data;
+    }
+
+    async function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const data = await apiPost('/login', { username, password });
+            token = data.access_token;
+            localStorage.setItem('token', token);
+            localStorage.setItem('username', username);
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('appPage').style.display = 'block';
+            document.getElementById('userName').innerText = username;
+            showToast('Login successful!', 'success');
+            loadAccounts();
+            loadTransactions();
+        } catch(e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    function logout() {
+        token = null;
+        localStorage.removeItem('token');
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('appPage').style.display = 'none';
+    }
+
+    async function loadAccounts() {
+        try {
+            const data = await apiGet('/accounts');
+            accounts = data.accounts || data;
+
+            const container = document.getElementById('accountsList');
+            container.innerHTML = '';
+            let total = 0;
+            accounts.forEach(acc => {
+                total += parseFloat(acc.balance);
+                container.innerHTML += `
+                    <div class="account-card">
+                        <div><strong>Account #${acc.account_id}</strong> - ${acc.account_number}</div>
+                        <div class="balance">$${parseFloat(acc.balance).toLocaleString()}</div>
+                        <div>Status: ${acc.status || 'active'}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML += `<div class="card"><strong>Total Balance: $${total.toLocaleString()}</strong></div>`;
+        } catch(e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    async function transfer() {
+        const fromAccount = parseInt(document.getElementById('fromAccount').value);
+        const toAccount = parseInt(document.getElementById('toAccount').value);
+        const amount = parseFloat(document.getElementById('amount').value);
+
+        if (!fromAccount || !toAccount || !amount) {
+            showToast('Please fill all fields', 'error');
+            return;
+        }
+
+        if (fromAccount === toAccount) {
+            showToast('Cannot transfer to same account', 'error');
+            return;
+        }
+
+        try {
+            await apiPost('/transfer', {
+                from_account_id: fromAccount,
+                to_account_id: toAccount,
+                amount: amount
+            });
+            showToast('Transfer successful!', 'success');
+            document.getElementById('amount').value = '';
+            loadAccounts();
+            loadTransactions();
+        } catch(e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    async function withdraw() {
+        const account = parseInt(document.getElementById('withdrawAccount').value);
+        const amount = parseFloat(document.getElementById('withdrawAmount').value);
+
+        if (!account || !amount) {
+            showToast('Please fill all fields', 'error');
+            return;
+        }
+
+        try {
+            await apiPost('/withdraw', {
+                account_id: account,
+                amount: amount
+            });
+            showToast('Withdrawal successful!', 'success');
+            document.getElementById('withdrawAmount').value = '';
+            loadAccounts();
+            loadTransactions();
+        } catch(e) {
+            showToast(e.message, 'error');
+        }
+    }
+
+    async function loadTransactions() {
+        try {
+            const data = await apiGet('/transactions');
+            const txns = data.transactions || data;
+            const tbody = document.getElementById('transactionsBody');
+
+            if (!txns || txns.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">No transactions yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = txns.map(t => `
+                <tr>
+                    <td>${t.transaction_id}</td>
+                    <td>${t.from_account_id || '-'}</td>
+                    <td>${t.to_account_id || '-'}</td>
+                    <td>$${parseFloat(t.amount).toLocaleString()}</td>
+                    <td>${t.transaction_type}</td>
+                    <td><span style="color:green">${t.status}</span></td>
+                    <td>${t.created_at ? new Date(t.created_at).toLocaleString() : 'Just now'}</td>
+                </tr>
+            `).join('');
+        } catch(e) {
+            console.error('Transactions error:', e);
+            document.getElementById('transactionsBody').innerHTML = '<tr><td colspan="7">Error loading transactions</td></tr>';
+        }
+    }
+
+    function showPage(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(page + 'Page').classList.add('active');
+
+        document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+        document.getElementById('nav-' + page).classList.add('active');
+
+        if (page === 'transactions') loadTransactions();
+        if (page === 'dashboard') loadAccounts();
+    }
+
+    if (token && localStorage.getItem('username')) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('appPage').style.display = 'block';
+        document.getElementById('userName').innerText = localStorage.getItem('username');
+        loadAccounts();
+        loadTransactions();
+    }
+    </script>
+</body>
+</html>
